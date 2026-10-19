@@ -1,0 +1,360 @@
+// Prisma Schema for BUPCommon Multi-Seller Campus Marketplace
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+}
+
+enum Condition {
+  NEW
+  USED_LIKE_NEW
+  USED_GOOD
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  SOLD
+  REMOVED
+}
+
+enum OrderItemStatus {
+  CONFIRMED
+  PACKED
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum PayoutStatus {
+  PENDING
+  COMPLETED
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id                 String             @id @default(uuid())
+  name               String
+  username           String?            @unique
+  email              String             @unique
+  studentId          String?            @unique
+  department         String?
+  faculty            String?
+  batch              String?
+  hall               String?
+  phone              String?
+  bio                String?
+  gender             String?
+  dateOfBirth        DateTime?
+  passwordHash       String
+  role               Role               @default(USER)
+  isBupVerified      Boolean            @default(false)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  isSeller           Boolean            @default(false)
+  avatarUrl          String?
+  coverUrl           String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  sellerProfile   SellerProfile?
+  listings        Listing[]
+  orders          Order[]            @relation("BuyerOrders")
+  reviewsGiven    Review[]           @relation("BuyerReviews")
+  wishlist        Wishlist[]
+  buyerChats      Conversation[]     @relation("BuyerConversations")
+  sellerChats     Conversation[]     @relation("SellerConversations")
+  messagesSent    Message[]
+  reportsFiled    Report[]
+  stallBookings   StallBooking[]
+  addresses       Address[]
+  savedPayments   PaymentMethod[]
+  notifications   NotificationItem[]
+  following       Follow[]           @relation("UserFollowing")
+}
+
+model SellerProfile {
+  id                String       @id @default(uuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopName          String
+  slug              String       @unique
+  logo              String?
+  banner            String?
+  tagline           String?
+  description       String?
+  sellerType        String       @default("Student") // Student | Faculty | Staff | Stall Vendor | Canteen
+  categories        String[]
+  pickupPoints      String[]
+  openingHours      Json?
+  deliveryFee       Float        @default(0.0)
+  prepTime          String?      @default("30 mins")
+  phone             String
+  pickupLocation    String
+  payoutMethod      String       // bkash | nagad
+  payoutNumber      String
+  vacationUntil     DateTime?
+  verificationLevel String       @default("EMAIL_VERIFIED") // EMAIL_VERIFIED | BUP_VERIFIED | TRUSTED_SELLER
+  policy            String?
+  announcement      String?
+  rating            Float        @default(5.0)
+  totalSales        Int          @default(0)
+  balance           Float        @default(0.0)
+  isTrusted         Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  payouts   Payout[]
+  reviews   Review[]      @relation("SellerReviews")
+  followers Follow[]      @relation("SellerFollowers")
+  replies   ReviewReply[]
+}
+
+model Follow {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation("UserFollowing", fields: [userId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    SellerProfile @relation("SellerFollowers", fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([userId, sellerId])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String?
+  description String?
+  listings    Listing[]
+}
+
+model Listing {
+  id            String        @id @default(uuid())
+  title         String
+  description   String
+  price         Float
+  originalPrice Float?
+  images        String[]
+  condition     Condition     @default(NEW)
+  stock         Int           @default(1)
+  status        ListingStatus @default(ACTIVE)
+  viewsCount    Int           @default(0)
+  isBoosted     Boolean       @default(false)
+  deliveryTime  String        @default("Same Day on Campus")
+  pickupOption  String        @default("Campus Pickup & Handover")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  sellerId      String
+  seller        User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems Wishlist[]
+  conversations Conversation[]
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  listingId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  buyerId        String
+  buyer          User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  totalAmount    Float
+  platformFee    Float       @default(0.0)
+  pickupLocation String
+  paymentMethod  String      // bkash | nagad | cod
+  paymentStatus  String      @default("PENDING")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id        String          @id @default(uuid())
+  orderId   String
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing         @relation(fields: [listingId], references: [id])
+  sellerId  String
+  price     Float
+  quantity  Int             @default(1)
+  status    OrderItemStatus @default(CONFIRMED)
+  cancelReason String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Review {
+  id              String        @id @default(uuid())
+  buyerId         String
+  buyer           User          @relation("BuyerReviews", fields: [buyerId], references: [id])
+  sellerId        String
+  seller          SellerProfile @relation("SellerReviews", fields: [sellerId], references: [id])
+  listingId       String
+  listing         Listing       @relation(fields: [listingId], references: [id])
+  rating          Int           @default(5)
+  sellerRating    Int           @default(5)
+  comment         String
+  createdAt       DateTime      @default(now())
+  replies         ReviewReply[]
+}
+
+model ReviewReply {
+  id        String        @id @default(uuid())
+  reviewId  String
+  review    Review        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  replyText String
+  createdAt DateTime      @default(now())
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  buyerId   String
+  buyer     User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  sellerId  String
+  seller    User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  listingId String?
+  listing   Listing?  @relation(fields: [listingId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  messages  Message[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  text           String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+model Report {
+  id         String       @id @default(uuid())
+  reporterId String
+  reporter   User         @relation(fields: [reporterId], references: [id])
+  targetType String       // LISTING | USER
+  targetId   String
+  reason     String
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+}
+
+model StallBooking {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  stallId     String
+  clubName    String
+  dateStart   DateTime
+  dateEnd     DateTime
+  totalAmount Float
+  status      String   @default("CONFIRMED")
+  createdAt   DateTime @default(now())
+}
+
+model Payout {
+  id            String        @id @default(uuid())
+  sellerId      String
+  sellerProfile SellerProfile @relation(fields: [sellerId], references: [id])
+  amount        Float
+  commission    Float
+  netAmount     Float
+  method        String        // bkash | nagad
+  accountNumber String
+  status        PayoutStatus  @default(PENDING)
+  createdAt     DateTime      @default(now())
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       String   // Hall | Home | Other
+  recipient   String
+  phone       String
+  area        String   // Mirpur DOHS, BUP Campus, etc.
+  fullAddress String
+  pickupPoint String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model PaymentMethod {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  method        String   // bkash | nagad
+  accountNumber String   // Masked e.g. 017****5892
+  accountHolder String
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model NotificationItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  category  String   // orders | messages | offers | system
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+}
