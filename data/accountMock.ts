@@ -13,6 +13,7 @@ export const INITIAL_USER: UserProfile = {
   name: 'Muntasir Mamun',
   username: 'muntasir_bup',
   email: 'muntasir.mamun@bup.edu.bd',
+  role: 'student',
   studentId: '210204018',
   department: 'Computer Science & Engineering (FST)',
   faculty: 'Faculty of Science & Technology',

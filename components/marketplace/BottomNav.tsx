@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   Home,
   Grid,
@@ -14,12 +14,13 @@ import {
 import { useBup } from '@/context/BupContext'
 
 export function BottomNav() {
+  const router = useRouter()
   const pathname = usePathname()
-  const { totalCartCount, currentUser, openAuth, openProfileModal } = useBup()
+  const { totalCartCount, currentUser, openAuth } = useBup()
 
   const handleAccountClick = () => {
     if (currentUser) {
-      openProfileModal()
+      router.push('/account')
     } else {
       openAuth('bup')
     }
@@ -92,13 +93,13 @@ export function BottomNav() {
         <button
           onClick={handleAccountClick}
           className={`flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-md transition-colors ${
-            currentUser
+            pathname?.startsWith('/account')
               ? 'text-[#1f3a2e] font-bold'
               : 'text-neutral-500 hover:text-neutral-800'
           }`}
         >
           <div className="relative">
-            <User className="size-5 text-neutral-500" />
+            <User className={`size-5 ${pathname?.startsWith('/account') ? 'text-[#b5573a]' : 'text-neutral-500'}`} />
             {currentUser?.isBupVerified && (
               <span className="absolute -top-1 -right-1 size-2 rounded-full bg-emerald-500" />
             )}

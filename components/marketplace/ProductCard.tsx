@@ -79,21 +79,22 @@ export function ProductCard({ product, dense = false }: ProductCardProps) {
 
         {/* CONTENT DETAILS */}
         <div className="mt-2.5">
-          {/* Verified Seller badge */}
+          {/* Verified Seller badge & link to shop */}
           <div className="flex items-center justify-between gap-1 text-[11px] mb-1">
             <span className="text-neutral-500 font-medium truncate">
               {product.category}
             </span>
-            {product.isVerifiedSeller ? (
-              <span className="inline-flex items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] font-bold text-emerald-700 shrink-0">
-                <ShieldCheck className="size-3" />
-                <span>Verified</span>
-              </span>
-            ) : (
-              <span className="text-[10px] text-neutral-400 truncate">
-                {product.seller.slice(0, 16)}
-              </span>
-            )}
+            <Link
+              href={`/shop/${product.sellerSlug || product.seller.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-0.5 text-[10px] font-bold text-neutral-600 hover:text-[#1f3a2e] hover:underline shrink-0 max-w-[120px] truncate"
+              title={`View ${product.seller}'s Campus Shop`}
+            >
+              {product.isVerifiedSeller && (
+                <ShieldCheck className="size-3 text-emerald-700 shrink-0" />
+              )}
+              <span className="truncate">{product.seller}</span>
+            </Link>
           </div>
 
           {/* Title (max 2 lines) */}

@@ -107,7 +107,7 @@ export interface UserProfile {
   name: string
   username?: string
   email: string
-  role: UserRole
+  role?: UserRole
   studentId?: string
   department?: string
   faculty?: string
@@ -119,7 +119,7 @@ export interface UserProfile {
   dateOfBirth?: string
   isBupVerified: boolean
   verificationStatus?: VerificationStatus
-  isSeller: boolean
+  isSeller?: boolean
   sellerSlug?: string
   sellerProfile?: SellerProfileData
   avatarUrl?: string

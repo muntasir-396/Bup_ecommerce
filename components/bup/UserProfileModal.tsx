@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import {
   X,
   User,
@@ -135,19 +136,20 @@ export function UserProfileModal({
           </div>
 
           {/* Action buttons */}
-          <div className="pt-2 flex gap-3">
-            <button
+          <div className="pt-2 flex flex-col sm:flex-row gap-2">
+            <Link
+              href="/account"
               onClick={onClose}
-              className="flex-1 rounded-full border border-[#392525]/20 py-3 text-xs font-bold hover:bg-white/60"
+              className="flex-1 rounded-full bg-[#1f3a2e] text-white py-3 text-xs font-bold text-center hover:bg-[#b5573a] transition-colors"
             >
-              Close
-            </button>
+              Go to Full Account Area →
+            </Link>
             <button
               onClick={() => {
                 onSignOut()
                 onClose()
               }}
-              className="flex items-center justify-center gap-2 rounded-full bg-red-700 px-5 py-3 text-xs font-bold text-white hover:bg-red-800 transition-colors"
+              className="flex items-center justify-center gap-2 rounded-full border border-rose-300 bg-rose-50 px-4 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors"
             >
               <LogOut className="size-4" />
               <span>Sign Out</span>

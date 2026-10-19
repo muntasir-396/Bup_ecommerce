@@ -18,8 +18,8 @@ export function FloatingSellButton() {
   const destination = currentUser
     ? currentUser.role === 'student' || (currentUser as any).isSeller
       ? '/seller'
-      : '/seller/onboard'
-    : '/seller/onboard'
+      : '/seller/setup'
+    : '/seller/setup'
 
   return (
     <div className="fixed bottom-18 md:bottom-6 right-4 z-40">

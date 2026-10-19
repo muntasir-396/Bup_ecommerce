@@ -330,7 +330,7 @@ export default function SellerHubPage() {
 
           <div className="flex items-center gap-2">
             <Link
-              href={`/shop/${currentUser.id}`}
+              href={`/shop/${currentUser.sellerSlug || currentUser.sellerProfile?.slug || currentUser.id}`}
               className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
             >
               View Public Shop →
@@ -910,12 +910,20 @@ export default function SellerHubPage() {
                     />
                   </div>
 
-                  <button
-                    onClick={() => showToast('Store settings saved successfully!')}
-                    className="rounded-lg bg-[#1f3a2e] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#b5573a] transition-colors"
-                  >
-                    Save Settings
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                    <button
+                      onClick={() => showToast('Store settings saved successfully!')}
+                      className="rounded-lg bg-[#1f3a2e] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#b5573a] transition-colors"
+                    >
+                      Save Settings
+                    </button>
+                    <Link
+                      href="/seller/profile"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-xs font-bold text-[#1f3a2e] hover:bg-neutral-50 shadow-2xs"
+                    >
+                      <span>Full Shop Profile, Vacation Mode & Verification Tiers →</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}
